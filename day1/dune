@@ -1,0 +1,4 @@
+(executable
+ (flags :standard -alert --deprecated -w -26-6)
+ (libraries base)
+ (name day1))
