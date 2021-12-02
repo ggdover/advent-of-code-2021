@@ -30,12 +30,6 @@ module List = struct
 
     let groupi = Base.List.groupi
 
-    (* Need to use this instead of "stdlib's" version of "map"
-       inorder to make sure we get back a list that is compatible
-       with the type "Summable" from "Container_intf" so that we
-       can use the list with the function "List.sum" from "Base" library *)
-    (*let map = Base.List.map*)
-
     let sum list = 
         match list with
         | [] -> 0
