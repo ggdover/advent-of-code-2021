@@ -1,4 +1,3 @@
 (executable
- (flags -w -26)
  (libraries base)
  (name day3))
