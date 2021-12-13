@@ -137,7 +137,11 @@ the card that has one or more empty sublists.)
 
 2. Bool that is TRUE if bingo was reached and FALSE otherwise.
 *)
-let mark_num_on_cards num cards =
+(*
+OLD VERSION OF mark_num_on_cards_old
+---------- replaced by "mark_num_on_cards" ----------
+
+let mark_num_on_cards_old num cards =
     let rec next_card cards new_cards =
         match cards with
         | [] -> (List.rev new_cards, false)
@@ -180,7 +184,60 @@ let mark_num_on_cards num cards =
                 next_card rem_cards (marked_card :: new_cards)
     in
     next_card cards []
+*)
 
+(*
+DESCRIPTION:
+
+Runs through all bingo cards in 'cards'
+and remove any number on any bingo card that
+matches 'num'.
+
+The function stops when it has run through all
+cards in 'cards' or if it finds a "bingo" on one
+of the cards before that (one of the sublists in
+a card is empty after removing the number.)
+it will stop and return.
+
+RETURN
+
+Returns a tuple including three things:
+
+1. The remaining cards that didn't get processed
+will only be non-empty if "bingo" was reached before
+all the cards have been processed.
+
+2. The list of updated cards that was accumulated
+up to the point when function returned.
+Will include all of the cards in 'cards' but with
+the number 'num' removed from them (if it existed)
+if no bingo was reached. If no bingo was reached it
+will only hold all of the cards that have been
+updated up to that point including the card that
+received the bingo.
+Since it's of the type "Stdlib.List", the elements
+are added at the front, therefore, if bingo was reached,
+the first element in this list will be the card that have
+gotten "bingo".
+
+3. Bool that is 'true' if bingo was reached and 'false' otherwise.
+ *)
+(*
+
+---------- Replaced by "stop_at_bingo_num" ----------
+
+let rec mark_num_on_cards num cards new_cards =
+    match cards with
+    | [] -> ([], List.rev new_cards, false)
+    | card::rem_cards ->
+        let marked_card = List.map (fun line -> List.pop num line) card in
+        let is_bingo = not (List.for_all (fun line -> line != []) marked_card) in
+
+        if is_bingo then
+            (rem_cards, (marked_card :: new_cards, true)
+        else
+            mark_num_on_cards num rem_cards (marked_card :: new_cards)
+*)
 (*
 DESCRIPTION:
 
@@ -231,16 +288,21 @@ If it returns a card, the numbers that remains
 in that card are all of the unmarked numbers of 
 the winning bingo card.
 *)
+(*
+OLD VERSION OF THIS FUNCTION
 
 let rec find_winning_card nums cards =
     match nums with
     | [] -> None, 0
     | num::rem_nums ->
-        let (new_cards, bingo) = mark_num_on_cards num cards in
+        let (_, new_cards, bingo) = mark_num_on_cards num cards [] in
         if bingo then
             (Some (List.hd new_cards), num) (* Here, "new_cards" is a list with only the winning card *)
         else
             find_winning_card rem_nums new_cards
+*)
+
+(********************************************************)
 
 (*
 DESCRIPTION:
@@ -249,9 +311,157 @@ Prints the values/numbers of a bingo card that have 5x5 dimensions.
 *)
 let print_card card =
     let print_line line =
-        List.iter (fun num -> print_string ("Num: " ^ (string_of_int num) ^ "\n")) line
+        print_string "Line: ";
+        List.iter (fun num -> print_string (string_of_int num ^ " ")) line;
+        print_string "\n";
     in
-    List.iter print_line card
+    List.iter print_line card;
+    print_string "\n"
+
+let rec print_cards cards =
+    match cards with
+    | [] -> ()
+    | c::rem_cards -> 
+        print_card c;
+        print_cards rem_cards
+
+let rec print_nums nums =
+    match nums with
+    | [] -> ()
+    | n::rem_nums ->
+        if rem_nums = [] then
+            print_string ((string_of_int n) ^ "\n")
+        else
+            print_string ((string_of_int n) ^ ", ");
+        print_nums rem_nums
+
+(*  
+Goes through cards in 'cards' and removes the number 'num'
+from any line that it appears on. Stop if bingo is reached
+before all cards have been checked (Find an empty line in
+a card).
+
+RETURNS
+
+Tuple with 3 things
+
+1. Cards that were not checked or updated. Guaranteed 
+to be empty if bingo wasn't reached and might hold
+some cards if bingo was reached.
+
+2. The cards that have been checked and updated
+(updated means that 'num' has been removed from
+the lines it appears on in that card).
+
+3. Bool that is 'true' if bingo was reached and 
+'false otherwise.
+*)
+let rec stop_on_bingo_num num cards new_cards =
+    match cards with
+    | [] -> ([], new_cards, false)
+    | card::rem_cards ->
+        let marked_card = List.map (fun line -> List.pop num line) card in
+        let is_bingo = not (List.for_all (fun line -> line != []) marked_card) in
+
+        if is_bingo then
+            (rem_cards, (marked_card :: new_cards), true)
+        else
+            stop_on_bingo_num num rem_cards (marked_card :: new_cards)
+
+
+(* 
+Takes one number from 'nums' at a time, starting with the
+first element, and calls 'stop_on_bingo_num' on it.
+Stops when we run out of numbers from 'nums' or when
+'stop_on_bingo_num' returns that bingo was reached.
+
+RETURNS
+
+Tuple with 5 things
+
+1. Numbers that weren't called with 'stop_on_bingo_num'.
+
+2. Numbers that were called with 'stop_on_bingo_num'.
+The number that was in the middle of being processed
+when bingo was reched by 'stop_on_bingo_num' (assuming
+that bingo was ever reached.) is included in this list
+of numbers as the first element.
+
+3. The list of cards that hadn't been checked yet that
+round of calling 'stop_on_bingo_num' when it suddenly
+finds a card with bingo.
+
+4. The list of cards that had been checked by 'stop_on_bingo_num'.
+The card that got 'bingo' is included in this list as the
+first element.
+
+5. Bool that is 'true' if bingo was reached and 
+'false otherwise.
+*)
+let rec stop_on_bingo_nums nums new_nums cards new_cards  =
+    match nums with
+    | [] -> ([], new_nums, [], new_cards, false)
+    | num::rem_nums ->
+        let (rem_cards, new_cards, bingo) = stop_on_bingo_num num cards [] in
+
+        if bingo then
+            (rem_nums, (num :: new_nums), rem_cards, new_cards, true)
+        else
+            stop_on_bingo_nums rem_nums (num :: new_nums) new_cards []
+
+let find_winning_card nums cards =
+    let (_, checked_nums, _, checked_cards, is_bingo) = stop_on_bingo_nums nums [] cards [] in
+
+    if is_bingo then
+        let winning_num = List.hd checked_nums in
+        let winning_card = List.hd checked_cards in
+        (Some winning_card, winning_num)
+    else
+        let _ = print_string "find_winning_card: Never found a winning card! wut?" in
+        (None, 0)
+
+(* Card that is guaranteed to lose *)
+let rec find_last_winning_card nums cards =
+(*
+    DEBUG CODE
+
+    print_cards cards;
+    print_nums nums;
+    print_string "-----------------\n";
+*)
+
+    let (rem_nums, checked_nums, rem_cards, checked_cards, is_bingo) = stop_on_bingo_nums nums [] cards [] in
+
+    if is_bingo then
+
+(*      
+        DEBUG CODE
+
+        let _ = print_string "Bingo card:\n" in
+        let _ = print_card (List.hd checked_cards) in
+        let _ = print_string ("Bingo num = " ^ string_of_int (List.hd checked_nums) ^ "\n") in
+        let _ = print_nums rem_nums in
+        let _ = print_string "#############################\n" in
+*)
+        (* Include the num that got bingo (List.hd checked_nums) in the new list of nums
+            If there are more cards that could get bingo with that same card. *)
+        let new_nums = (List.hd checked_nums) :: rem_nums in
+
+        (* The new list of cards includes all bingo cards but excludes
+            the card that got bingo (the first element in 'checked_cards') *)
+        let new_cards = (List.tl checked_cards) @ rem_cards in
+
+        match new_cards with
+        | [] ->
+            (* No cards that haven't gotten bingo remaining. Return the last card that got bingo. *)
+            (* We have found the last winning card *)
+            (Some (List.hd checked_cards), (List.hd checked_nums))
+        | _ ->
+            (* More than one card left, loop again *)
+            find_last_winning_card new_nums new_cards
+    else
+        let _ = print_string "find_last_winning_card: ERROR Ran out of numbers and never found a card with bingo! wut?" in
+        (None, 0)
 
 (* 
 DESCRIPTION:
@@ -277,6 +487,15 @@ let part1 input =
     print_string ("Winning number = " ^ string_of_int winning_num ^ "\n");
     print_string ("Part1 answer = " ^ string_of_int (unmarked_numbers_sum * winning_num) ^ "\n\n")
 
-let () = 
+let part2 input =
+    let (nums, cards) = parse_input input in
+    let (last_winning_card, last_winning_num) = find_last_winning_card nums cards in
+    let unmarked_numbers_sum = sum_bingo_numbers (Option.get last_winning_card) in
+    print_string ("Unmarked numbers sum = " ^ string_of_int unmarked_numbers_sum ^ "\n");
+    print_string ("Winning number = " ^ string_of_int last_winning_num ^ "\n");
+    print_string ("Part2 answer = " ^ string_of_int (unmarked_numbers_sum * last_winning_num) ^ "\n\n")
+
+let () =
     let input = input_string "input.txt" in
-    part1 input
+    part1 input;
+    part2 input
