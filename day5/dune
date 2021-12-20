@@ -1,0 +1,4 @@
+(executable
+ (libraries str)
+ (flags :standard -w -26)
+ (name day5))

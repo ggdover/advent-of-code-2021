@@ -1,0 +1,58 @@
+
+let parse_line_seg line_seg =
+  (*match String.split_on_str " -> " line_seg with
+  | [start_coord; end_coord] ->
+      match String.split_on_char ',' start_coord with
+      | [x1; y1] ->
+
+  | _ ->
+      raise (Failure ("Failure when parsing 1"))
+  *)
+  
+  (*let [start_coord; end_coord] = String.split_on_str " -> " line_seg in
+  let [x1; y1] = String.split_on_char ',' start_coord in
+  let [x2; y2] = String.split_on_char ',' end_coord in*)
+
+
+  print_string "\bajs fitta";
+
+  let start_coord, end_coord = List.to_pair( String.split_on_str " -> " line_seg ) in
+  
+  print_string ("\nkuk 2 " ^ start_coord);
+  let x1s, y1s = List.to_pair( String.split_on_char ',' start_coord ) in
+  
+  print_string ("\nkuk 3 " ^ end_coord);
+  let x2s, y2s = List.to_pair( String.split_on_char ',' end_coord ) in
+
+  (*let a = String.split_on_char ',' end_coord in*)
+  print_string "\nkuk 4a ";
+
+  print_string "\nkuk 4";
+  print_string x1s; print_string y1s;
+  print_string x2s; print_string y2s;
+  print_string "\nkuk 5";
+
+  let x1i = int_of_string x1s in
+  print_string "\nkiiki 1\n";
+  let y1i = int_of_string y1s in
+  print_string "kiiki 2\n";
+  let x2i = int_of_string x2s in
+  print_string "kuuuuku 1\n";
+  print_string ("kiiki 3 y2s = " ^ y2s ^ "---");
+  print_string "\nkuuuuku 2\n";
+  let y2i = int_of_string y2s in
+  print_string "\nkiiki 4\n";
+
+  { x1 = (int_of_string x1s); x2 = (int_of_string x2s);
+    y1 = (int_of_string y1s); y2 = (int_of_string y2s) }
+  (*try
+  { x1 = (int_of_string x1); x2 = (int_of_string x2);
+    y1 = (int_of_string y1); y2 = (int_of_string y2) }
+  with    
+  e ->
+      let msg = Printexc.to_string e
+      and stack = Printexc.get_backtrace () in
+          Printf.eprintf "there was an error: %s%s\n" msg 
+      print_string "\nkiiik ";
+      print_string x1; print_string x2; 
+      print_string y1; print_string y2*)
