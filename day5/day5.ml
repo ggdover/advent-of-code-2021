@@ -63,7 +63,7 @@ let print_line_seg line =
 (**** Print list of coordinates ****)
 (*      type: (int * int) list     *)
 let print_coords coords =
-    List.iter (fun (x,y) -> print_string ("coord: (" ^ (string_of_int x) ^ "," ^ (string_of_int y) ^ "\n") ) coords
+    List.iter (fun (x,y) -> print_string ("coord: (" ^ (string_of_int x) ^ "," ^ (string_of_int y) ^ ")\n") ) coords
 
 (**** Print hashtable of ventilation count ****)
 (* type: Hashtbl
@@ -106,6 +106,14 @@ let rec parse_orthogonal_lines lines new_lines =
         else
             parse_orthogonal_lines rem_lines new_lines
 
+(* Parse and keep all lines (Vertical, horizontal and diagonal (45 degree) lines) *)
+let rec parse_all_lines lines new_lines =
+    match lines with
+    | [] -> List.rev new_lines
+    | line::rem_lines ->
+        let line_seg = parse_line_seg line in
+        parse_all_lines rem_lines (line_seg :: new_lines)
+
 (******************************************************)
 
 (* Get the list of coordinates of a line segment 
@@ -121,8 +129,22 @@ let get_coords line =
         let end_y = max line.y1 line.y2 in
         List.build (line.x1, start_y) ( fun (x, y) -> ((x, y+1), y < end_y) )
 
-    else
-        raise (Failure ("What is non-orthogonal line doing here????"))
+    else (* Diagonal (45 degrees) line *)
+        let x_step = if line.x1 < line.x2 then 1 else -1 in
+        (*print_string "hrhguhrg\n";
+        print_int x_step;*)
+        let y_step = if line.y1 < line.y2 then 1 else -1 in
+        (*print_endline "";
+        print_int y_step;
+        print_endline "";*)
+        List.build (line.x1, line.y1) ( fun (x, y) -> 
+                                            (*print_string "\nx: "; print_int x;
+                                            print_string "\ny: "; print_int y;
+                                            print_string "\nx_step: "; print_int x_step;
+                                            print_string "\ny_step: "; print_int y_step;
+                                            print_string "\nline.x2: "; print_int line.x2;
+                                            print_string "\nline.y2: "; print_int line.y2;*)
+                                            (x+x_step, y+y_step), x != line.x2 && y != line.y2)
 
 let add_vent table coord =
     match Hashtbl.find table coord with
@@ -155,6 +177,13 @@ let part1 lines =
     let num_of_vents = count_dangerous_vents table orthog_line_segs in
     print_endline ("Part 1, number of dangerous vents = " ^ (string_of_int num_of_vents))
 
+let part2 lines =
+    let line_segs = parse_all_lines lines [] in
+    let table = Hashtbl.create 123456 in
+    let num_of_vents = count_dangerous_vents table line_segs in
+    print_endline ("Part 2, number of dangerous vents = " ^ (string_of_int num_of_vents))
+
 let () = 
     let lines = input_all_lines "input.txt" in
-    part1 lines
+    part1 lines;
+    part2 lines
