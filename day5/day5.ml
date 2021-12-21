@@ -116,8 +116,7 @@ let rec parse_all_lines lines new_lines =
 
 (******************************************************)
 
-(* Get the list of coordinates of a line segment 
-   that is horizontal or vertical. *)
+(* Get the list of coordinates of a line segment *)
 let get_coords line =
     if is_horizontal line then
         let start_x = min line.x1 line.x2 in
@@ -131,20 +130,8 @@ let get_coords line =
 
     else (* Diagonal (45 degrees) line *)
         let x_step = if line.x1 < line.x2 then 1 else -1 in
-        (*print_string "hrhguhrg\n";
-        print_int x_step;*)
         let y_step = if line.y1 < line.y2 then 1 else -1 in
-        (*print_endline "";
-        print_int y_step;
-        print_endline "";*)
-        List.build (line.x1, line.y1) ( fun (x, y) -> 
-                                            (*print_string "\nx: "; print_int x;
-                                            print_string "\ny: "; print_int y;
-                                            print_string "\nx_step: "; print_int x_step;
-                                            print_string "\ny_step: "; print_int y_step;
-                                            print_string "\nline.x2: "; print_int line.x2;
-                                            print_string "\nline.y2: "; print_int line.y2;*)
-                                            (x+x_step, y+y_step), x != line.x2 && y != line.y2)
+        List.build (line.x1, line.y1) ( fun (x, y) -> (x + x_step, y + y_step), x != line.x2 && y != line.y2 )
 
 let add_vent table coord =
     match Hashtbl.find table coord with
