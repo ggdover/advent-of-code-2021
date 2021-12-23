@@ -65,7 +65,15 @@ let calc_fuel dest positions_arr =
    you'll realize that the position you're looking to find
    in this assignment is the exact same as "Geometric median".
    You can find this information on for example this wikipedia
-   page: https://en.wikipedia.org/wiki/Geometric_median *)
+   page: https://en.wikipedia.org/wiki/Geometric_median 
+
+   In fact, the first sentence on this wikipedia page, at least
+   as I write this, reads as follows: 
+   "The geometric median of a discrete set of sample points in a 
+    Euclidean space is the point minimizing the sum of distances 
+    to the sample points" 
+
+   The exact same as what is the assignment of part1 here *)
 let part1 positions =
     let pos_arr = Array.of_list positions in
     (*print_endline ("Avg = " ^ (string_of_int (average pos_arr)));*)
