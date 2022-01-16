@@ -42,55 +42,12 @@ let parse_input_lines lines =
     in
     inner lines [] []
 
-(*
-Version of "parse_input_lines" function
-that uses mutable variables ("ref" and Array)
-and for-loop, a more imperative style.
-
-let parse_input_lines_2 lines =
-    let lines_arr = Array.of_list lines in
-    let patterns = ref []
-    let digit_output = ref []
-    for i = 0 to (Array.length lines_arr) do
-        let line = Array.get lines_arr i in
-        let pattern_str, digit_output_str = 
-            String.lsplit2_exn  ~on:'|' line in
-        let new_pattern = 
-            String.split_on_char ' ' pattern_str in
-        let new_digit_output = 
-            String.split_on_char ' ' digit_output_str in
-        patterns := (new_pattern :: patterns)
-        digit_output := (new_digit_output :: digit_output)
-    done;
-    patterns, digit_output
-*)
-
 (************************************************************)
-
-(*
-1 -> 2 segments <---- unique
-
-2 -> 5 segments
-3 -> 5 segments
-
-4 -> 4 segments <---- unique
-
-5 -> 5 segments
-6 -> 6 segments
-
-7 -> 3 segments <---- unique
-8 -> 7 segments <---- unique
-
-9 -> 6 segments
-*)
-
 
 (* Digit is either 2, 5 or 3, figure out which with the
    help of parameter "pattern" *)
 let decode_five_seg_digit digit pattern =
     let digit_one = List.find (fun p -> String.length p = 2) pattern in
-
-    (*print_endline ("decode_five_seg_digit: digit_one = " ^ digit_one);*)
 
     (* Out of the digits 2, 5 and 3 we know that only the digit 3 contains
        both segments that makes up the digit 1. So if the following expression
@@ -144,7 +101,6 @@ let decode_six_seg_digit digit pattern =
    
    Will raise exception when it finds a digit that it fails to decode. *)
 let decode_seven_seg digit pattern =
-    (*print_endline ("    seven_seg = " ^ digit ^ ", len = " ^ (string_of_int (String.length digit)));*)
     match String.length digit with
     | 2 -> 1 (* 1 on seven segment display uses 2 segments *)
     | 3 -> 7 (* 7 on seven segment display uses 3 segments *)
@@ -159,8 +115,11 @@ let decode_seven_seg digit pattern =
     | _ ->
         raise (Failure ("Cannot parse input digit value: " ^ digit))
 
+(* Simpler version of 'decode_seven_seg' that can be
+   used only to decode digits that uses a unique number
+   of segments.
+   For all other digits it will return '-1' *)
 let decode_unique_seven_seg digit =
-    (*print_endline ("    seven_seg = " ^ digit ^ ", len = " ^ (string_of_int (String.length digit)));*)
     match String.length digit with
     | 2 -> 1 (* 1 on seven segment display uses 2 segments *)
     | 3 -> 7 (* 7 on seven segment display uses 3 segments *)
@@ -179,35 +138,31 @@ let part1 lines =
     let _, digit_outputs = parse_input_lines lines in
     let count_unique_digits count digit_output = 
         let inner accu digit =
-            (*print_endline ("count_instances, count = " ^ (string_of_int count) ^ ", digit = " ^ digit);*)
             if is_unique_digit digit then accu + 1 else accu
         in
-        (*print_endline ("count_instances 2, count = " ^ (string_of_int count));*)
         List.fold_left inner count digit_output
     in
+
     let answer = List.fold_left count_unique_digits 0 digit_outputs in
     print_endline ("Part 1 answer = " ^ (string_of_int answer))
 
 let part2 lines =
     let patterns, digit_outputs = parse_input_lines lines in
+
+    (* Get sum of adding the integer representation of all digit outputs. *)
     let sum_digit_outputs accu_sum pattern digit_output =
-        (*let inner (accu_output, pattern) digit =
+
+        (* Convert the digit output (segment/letter patterns) 
+           to it's 4-digit integer representation.
+           Returned as a string. *)
+        let decode_digit_output accu_str digit =
             let output_value = decode_seven_seg digit pattern in
-            accu_output ^ (string_of_int output_value)
+            accu_str ^ (string_of_int output_value)
         in
-        let output_str = List.fold_left inner ("", pattern) digit_output in
-        accu_sum + (int_of_string output_str)*)
-        let inner accu_output digit =
-            (*print_string ("GGDGGD digit = " ^ digit ^ " pattern = ");*)
-            (*List.iter (fun p -> print_string (p ^ " ")) pattern;*)
-            (*print_endline "";*)
-            let output_value = decode_seven_seg digit pattern in
-            accu_output ^ (string_of_int output_value)
-        in
-        let output_str = List.fold_left inner "" digit_output in
-        (*print_endline ("output_str = " ^ output_str ^ "\n");*)
+        let output_str = List.fold_left decode_digit_output "" digit_output in
         accu_sum + (int_of_string output_str)
     in
+
     let answer = List.fold_left2 sum_digit_outputs 0 patterns digit_outputs in
     print_endline ("Part 2 answer = " ^ (string_of_int answer))
 
